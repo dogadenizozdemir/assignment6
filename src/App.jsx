@@ -1,122 +1,62 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useReducer, useState } from 'react';
+import { fetchPosts } from './api/postsApi';
+import { postsReducer, initialState } from './reducer/postsReducer';
+import PostList from './components/PostList';
+import FilterForm from './components/FilterForm';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [state, dispatch] = useReducer(postsReducer, initialState);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    let isMounted = true; 
+
+    const getPosts = async () => {
+      dispatch({ type: 'FETCH_START' });
+      try {
+        const data = await fetchPosts();
+        if (isMounted) {
+          dispatch({ type: 'FETCH_SUCCESS', payload: data });
+        }
+      } catch (error) {
+        if (isMounted) {
+          dispatch({ type: 'FETCH_ERROR', payload: error.message });
+        }
+      }
+    };
+
+    getPosts();
+
+    return () => {
+      isMounted = false; 
+    };
+  }, []);
+
+  
+  const filteredPosts = state.posts.filter((post) =>
+    post.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+      <h1>Post Dashboard</h1>
+      <FilterForm searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
-      <div className="ticks"></div>
+      {state.loading && <div>Loading posts...</div>}
+      
+      {!state.loading && state.error && (
+        <div style={{ color: 'red' }}>Error: {state.error}</div>
+      )}
+      
+      {!state.loading && !state.error && state.posts.length === 0 && (
+        <div>No posts found.</div>
+      )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {!state.loading && !state.error && state.posts.length > 0 && (
+        <PostList posts={filteredPosts} />
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
