@@ -1,16 +1,10 @@
-# React + Vite
+# React Post Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**File Organization**
+- `src/api/`: Contains `postsApi.js` for data fetching logic.
+- `src/components/`: Contains presentational components (`Post.jsx`, `PostList.jsx`) and the controlled form (`FilterForm.jsx`).
+- `src/reducer/`: Contains `postsReducer.js` for managing complex async states without mutating data.
+- `src/App.jsx`: The main container managing `useReducer`, `useEffect`, and derived state for the filter.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+**Challenges Faced**
+The main challenge was ensuring a clean separation between UI components and data logic. I had to make sure the reducer remained a strict pure function and that filtering was handled entirely as derived state during render, rather than relying on `useEffect`. Managing the loading, error, and empty states explicitly also required careful orchestration in the main App component.
